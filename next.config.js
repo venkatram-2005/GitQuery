@@ -15,7 +15,7 @@ const config = {
   // next.config.js
   experimental: {
     serverActions: {
-      allowedOrigins: ["localhost:3000"],
+      allowedOrigins: ["localhost:3000", "https://gitquery.vercel.app/"],
     },
   }
 
