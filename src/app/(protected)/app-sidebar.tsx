@@ -101,13 +101,15 @@ export function AppSidebar() {
                         <div onClick={() => {
                           setProjectId(project.id)
                         }}>
-                          <div className={cn(
-                            'rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary',
-                            {
-                              'bg-primary text-white': project.id === projectId
-                            }
-                          )}>
-                            {project.name[0]}
+                          <div className="hover:cursor-pointer">
+                              <div className={cn(
+                                'rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary',
+                                {
+                                  'bg-primary text-white': project.id === projectId
+                                }
+                              )}>
+                                {project.name[0]}
+                              </div>
                           </div>
                           <span>{project.name}</span>
                         </div>
@@ -121,7 +123,7 @@ export function AppSidebar() {
               {open && (
                 <SidebarMenuItem>
                   <Link href='/create'>
-                    <Button size='sm' variant="outline" className="w-fit">
+                    <Button size='sm' variant="outline" className="w-fit hover: cursor-pointer">
                       <Plus />
                       Create Project
                     </Button>

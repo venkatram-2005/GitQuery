@@ -47,6 +47,51 @@ export const getCommitHashes = async (
   }));
 };
 
+// export const pollCommits = async (projectId: string) => {
+//   const { project, githubUrl } = await fetchProjectGitHUbUrl(projectId);
+//   const commitHashes = await getCommitHashes(githubUrl);
+//   const unprocessesdCommits = await filterUnprocessesdCommits(
+//     projectId,
+//     commitHashes,
+//   );
+
+//   const summaryResponses = await Promise.allSettled(
+//     unprocessesdCommits.map(async (commit) => {
+//       try {
+//         return await summarizeCommit(githubUrl, commit.commitHash);
+//       } catch (err) {
+//         console.error(`❌ Error summarizing commit ${commit.commitHash}:`, err);
+//         throw err; // so it still goes into rejected branch
+//       }
+//     }),
+//   );
+
+//   const summaries = summaryResponses.map((response, index) => {
+//     if (response.status === "fulfilled") {
+//       return response.value as string;
+//     }
+//     return "Error generating summary for commit";
+//   });
+
+//   const commits = await db.commit.createMany({
+//     //@ts-ignore
+//     data: summaries.map((summary, index) => {
+//       console.log(`Processing commit ${index + 1} of ${summaries.length}`);
+//       return {
+//         projectId: projectId,
+//         commitHash: unprocessesdCommits[index]!.commitHash,
+//         commitMessage: unprocessesdCommits[index]!.commitMessage,
+//         commitAuthorName: unprocessesdCommits[index]!.commitAuthorName,
+//         commitAuthorAvatar: unprocessesdCommits[index]!.commitAuthorAvatar,
+//         commitDate: unprocessesdCommits[index]!.commitDate,
+//         summary,
+//       };
+//     }),
+//   });
+
+//   return commits;
+// };
+
 export const pollCommits = async (projectId: string) => {
   const { project, githubUrl } = await fetchProjectGitHUbUrl(projectId);
   const commitHashes = await getCommitHashes(githubUrl);
@@ -55,35 +100,33 @@ export const pollCommits = async (projectId: string) => {
     commitHashes,
   );
 
-  const summaryResponses = await Promise.allSettled(
-    unprocessesdCommits.map(async (commit) => {
-      try {
-        return await summarizeCommit(githubUrl, commit.commitHash);
-      } catch (err) {
-        console.error(`❌ Error summarizing commit ${commit.commitHash}:`, err);
-        throw err; // so it still goes into rejected branch
-      }
-    }),
-  );
+  const summaries: string[] = [];
 
-  const summaries = summaryResponses.map((response, index) => {
-    if (response.status === "fulfilled") {
-      return response.value as string;
+  for (let i = 0; i < unprocessesdCommits.length; i++) {
+    const commit = unprocessesdCommits[i];
+    try {
+      console.log(`Processing commit ${i + 1} of ${unprocessesdCommits.length}`);
+      const summary = await summarizeCommit(githubUrl, commit!.commitHash);
+      summaries.push(summary);
+      // Optional: add small delay between API calls
+      await new Promise(res => setTimeout(res, 1500)); // 0.5s delay
+    } catch (err) {
+      console.error(`❌ Error summarizing commit ${commit!.commitHash}:`, err);
+      summaries.push("Error generating summary for commit");
     }
-    return "Error generating summary for commit";
-  });
+  }
 
   const commits = await db.commit.createMany({
     //@ts-ignore
     data: summaries.map((summary, index) => {
-      console.log(`Processing commit ${index + 1} of ${summaries.length}`);
+      const commit = unprocessesdCommits[index]!;
       return {
-        projectId: projectId,
-        commitHash: unprocessesdCommits[index]!.commitHash,
-        commitMessage: unprocessesdCommits[index]!.commitMessage,
-        commitAuthorName: unprocessesdCommits[index]!.commitAuthorName,
-        commitAuthorAvatar: unprocessesdCommits[index]!.commitAuthorAvatar,
-        commitDate: unprocessesdCommits[index]!.commitDate,
+        projectId,
+        commitHash: commit.commitHash,
+        commitMessage: commit.commitMessage,
+        commitAuthorName: commit.commitAuthorName,
+        commitAuthorAvatar: commit.commitAuthorAvatar,
+        commitDate: commit.commitDate,
         summary,
       };
     }),
@@ -91,9 +134,6 @@ export const pollCommits = async (projectId: string) => {
 
   return commits;
 };
-
-
-
 
 const summarizeCommit = async (githubUrl: string, commitHash: string) => {
   const diffUrl = `${githubUrl}/commit/${commitHash}.diff`;
@@ -144,4 +184,4 @@ async function filterUnprocessesdCommits(
   return unprocessesdCommits;
 }
 
-await pollCommits("cmf1uoanr0006bwc493rt999a").then(console.log);
+// await pollCommits("cmf1uoanr0006bwc493rt999a").then(console.log);

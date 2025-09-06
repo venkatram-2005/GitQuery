@@ -15,7 +15,7 @@ const config = {
   // next.config.js
   experimental: {
     serverActions: {
-      allowedOrigins: ["localhost:3000", "tfjfq75p-3000.inc1.devtunnels.ms"],
+      allowedOrigins: ["localhost:3000"],
     },
   }
 

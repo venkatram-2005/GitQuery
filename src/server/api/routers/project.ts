@@ -23,8 +23,8 @@ export const projectRouter = createTRPCRouter({
                 }
             }
         })
-        await indexGithubRepo(project.id, input.githubUrl, input.gitHubToken);
-        //await pollCommits(project.id)
+        await indexGithubRepo(project.id, ctx.user.userId! ,input.githubUrl, input.gitHubToken);
+        await pollCommits(project.id)
         return project
     }),
 
@@ -121,7 +121,17 @@ export const projectRouter = createTRPCRouter({
                     user: true
                 }
             })
-        })
+        }),
+
+    getProgress: protectedProcedure.query(async ({ ctx }) => {
+        const user = await ctx.db.user.findUnique({
+            where: { id: ctx.user.userId! },
+            //@ts-ignore
+            select: { currentProjectId: true, currentFile: true },
+        });
+        return user;
+    }),
+
 
     
 

@@ -8,14 +8,17 @@ export const loadGitHubRepo = async (githubUrl: string, gitHubToken?: string) =>
     const loader = new GithubRepoLoader(githubUrl, {
         accessToken: process.env.GITHUB_TOKEN || gitHubToken,
         branch: 'main',
-        ignoreFiles: ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'node_modules/**', 'dist/**', 'build/**', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'mp4', 'mp3', '.pbix'],
+        ignoreFiles: [
+            'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+            'node_modules/**', 'dist/**', 'build/**',
+            '*.png', '*.jpg', '*.jpeg', '*.gif', '*.svg', '*.mp4', '*.mp3', '*.pbix'
+        ],
         recursive: true,
         unknown: 'warn',
         maxConcurrency: 5,
     });
     const docs = await loader.load();
     return docs;
-    
 }
 
 // console.log(await loadGitHubRepo('https://github.com/venkatram-2005/Portfolio'));
@@ -30,9 +33,9 @@ export const loadGitHubRepo = async (githubUrl: string, gitHubToken?: string) =>
     // id: undefined
 
 
-export const indexGithubRepo = async (projectId : string, githubUrl: string, gitHubToken?: string) => {
+export const indexGithubRepo = async (projectId : string, userId : string, githubUrl: string, gitHubToken?: string) => {
     const docs = await loadGitHubRepo(githubUrl, gitHubToken)
-    const allEmbeddings = await generateEmbeddings(docs);
+    const allEmbeddings = await generateEmbeddings(docs, projectId, userId);
     await Promise.allSettled(allEmbeddings.map(async (embedding, index) => {
         console.log(`Processing embedding ${index + 1} of ${allEmbeddings.length}`)
         if(!embedding) return;
@@ -52,18 +55,47 @@ export const indexGithubRepo = async (projectId : string, githubUrl: string, git
             WHERE "id" = ${sourceCodeEmbedding.id}
         `
     }))
-    
 }
 
-const generateEmbeddings = async (docs: Document[]) => {   // file is called document in langchain
-    return await Promise.all(docs.map(async doc => {
-        const summary = await summarizeCode(doc);
-        const embedding = await generateEmbedding(summary);
-        return {
-            summary, 
-            embedding, 
-            sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
-            fileName: doc.metadata.source,
-        }
-    }))
-}
+const generateEmbeddings = async (docs: Document[], projectId: string, userId : string) => {
+  const results = [];
+
+  for (const doc of docs) {
+    const fileName = doc.metadata.source;
+
+    // 🔥 mark progress in User before summarizing
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        currentProjectId: projectId,
+        currentFile: fileName,
+      } as any,
+    });
+
+    const summary = await summarizeCode(doc);
+    const embedding = await generateEmbedding(summary);
+
+    results.push({
+      summary,
+      embedding,
+      sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
+      fileName,
+    });
+
+    // small delay between requests
+    await new Promise((res) => setTimeout(res, 1500));
+  }
+
+  // ✅ clear after finishing all
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      currentProjectId: null,
+      currentFile: null,
+    }as any,
+  });
+
+  return results;
+};
+
+

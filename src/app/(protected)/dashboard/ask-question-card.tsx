@@ -21,6 +21,8 @@ const Spinner = () => (
   </div>
 )
 
+
+
 const AskQuestionCard = () => {
   const { project } = useProject()
   const [question, setQuestion] = React.useState('')
@@ -37,6 +39,16 @@ const AskQuestionCard = () => {
     setStreamingAnswer(text)
   }
 
+   // 📝 AI Rewrite mutation
+  const rewriteMutation = api.rewrite.rewriteWithAI.useMutation({
+    onSuccess: (data) => {
+      setQuestion(data.rewrittenText)
+      toast.success("Rewritten with AI ✨")
+    },
+    onError: () => {
+      toast.error("Failed to rewrite text")
+    },
+  })
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -48,7 +60,6 @@ const AskQuestionCard = () => {
     setOpen(true)
 
     try {
-      //@ts-ignore
       const { output, filesReferenced } = await askQuestion(question, project.id)
       setFilesReferences(filesReferenced)
       setAnswer(output)
@@ -74,6 +85,7 @@ const AskQuestionCard = () => {
                 <Image src="/logo.png" alt="gitquery" width={40} height={40} />
               </DialogTitle>
               <Button
+                className='hover:cursor-pointer'
                 disabled={saveAnswer.isPending}
                 variant="outline"
                 onClick={() => {
@@ -140,7 +152,21 @@ const AskQuestionCard = () => {
               onChange={e => setQuestion(e.target.value)}
             />
             <div className="h-4"></div>
-            <Button type="submit">Ask GitQuery!</Button>
+            <div className="flex items-center gap-4">
+                <Button
+                  type="button"
+                  className="hover:cursor-pointer flex items-center gap-2"
+                  onClick={() => rewriteMutation.mutate({ text: question })}
+                  disabled={rewriteMutation.isPending}
+                >
+                  {rewriteMutation.isPending && (
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  )}
+                  Rewrite With AI
+                </Button>
+
+                <Button type="submit" className="hover:cursor-pointer">Ask GitQuery!</Button>
+            </div>
           </form>
         </CardContent>
       </Card>

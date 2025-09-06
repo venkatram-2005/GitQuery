@@ -45,7 +45,7 @@ const InviteButton = () => {
         </DialogContent>
       </Dialog>
 
-      <Button onClick={() => setOpen(true)} size="sm">
+      <Button onClick={() => setOpen(true)} size="sm" className='hover:cursor-pointer'>
         Invite Members
       </Button>
     </>

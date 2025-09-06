@@ -9,6 +9,7 @@ import AskQuestionCard from './ask-question-card'
 import ArchiveButton from './archive-button'
 import InviteButton from './invite-button'
 import TeamMembers from './team-members'
+import FloatingTypewriterButton from './typewriter-button'
 
 const DashboardPage = () => {
     const { project } = useProject()
@@ -55,9 +56,13 @@ const DashboardPage = () => {
 
       <div className='h-4'></div>
       
-      {/* <div>
+      <div>
         <CommitLog/>
-      </div> */}
+      </div>
+
+      <div>
+        <FloatingTypewriterButton />
+      </div>
     </div>
   )
 }

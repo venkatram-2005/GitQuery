@@ -27,6 +27,7 @@ const ArchiveButton = () => {
       <AlertDialogTrigger asChild>
         <Button
           disabled={archiveProject.isPending}
+          className="hover:cursor-pointer"
           size="sm"
           variant="destructive"
         >
