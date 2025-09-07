@@ -109,7 +109,7 @@ export const pollCommits = async (projectId: string) => {
       const summary = await summarizeCommit(githubUrl, commit!.commitHash);
       summaries.push(summary);
       // Optional: add small delay between API calls
-      await new Promise(res => setTimeout(res, 1500)); // 0.5s delay
+      await new Promise(res => setTimeout(res, 2500)); // 0.5s delay
     } catch (err) {
       console.error(`❌ Error summarizing commit ${commit!.commitHash}:`, err);
       summaries.push("Error generating summary for commit");

@@ -52,7 +52,7 @@ const FloatingTypewriterButton: React.FC = () => {
     <div className="fixed bottom-6 right-6">
       <Button
         className="min-w-[300px] min-h-[48px] font-mono text-base font-medium relative hover:cursor-pointer"
-        onClick={() => window.open("https://www.google.com", "_blank")}
+        onClick={() => window.open("https://tinyurl.com/chattpr", "_blank")}
       >
         {displayText || "\u00A0"}
         <span className="ml-2 animate-pulse">▋</span>

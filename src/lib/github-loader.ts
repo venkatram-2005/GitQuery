@@ -83,7 +83,7 @@ const generateEmbeddings = async (docs: Document[], projectId: string, userId : 
     });
 
     // small delay between requests
-    await new Promise((res) => setTimeout(res, 1500));
+    await new Promise((res) => setTimeout(res, 2500));
   }
 
   // ✅ clear after finishing all
