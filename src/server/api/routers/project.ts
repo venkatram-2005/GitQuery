@@ -2,6 +2,8 @@ import { pollCommits } from "@/lib/github";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { indexGithubRepo } from "@/lib/github-loader";
+import { db } from "@/server/db";
+
 
 export const projectRouter = createTRPCRouter({
     createProject: protectedProcedure.input(
@@ -130,6 +132,27 @@ export const projectRouter = createTRPCRouter({
             select: { currentProjectId: true, currentFile: true },
         });
         return user;
+    }),
+
+    getFileTree: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+        if (!input?.projectId) {
+            return null; // or [] if you prefer empty result
+        }
+      const project = await db.project.findUnique({
+        where: { id: input.projectId },
+        select: { 
+            //@ts-ignore
+            fileTree: true 
+        },
+      });
+      //@ts-ignore
+      return project?.fileTree ?? null;
     }),
 
 

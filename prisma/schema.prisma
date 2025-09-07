@@ -38,6 +38,7 @@ model Project{
 
     name String
     githubUrl String
+    fileTree  String?
 
     deletedAt DateTime?
 

@@ -10,6 +10,8 @@ import ArchiveButton from './archive-button'
 import InviteButton from './invite-button'
 import TeamMembers from './team-members'
 import FloatingTypewriterButton from './typewriter-button'
+import FileTreeViewer from './file-structute'
+
 
 const DashboardPage = () => {
     const { project } = useProject()
@@ -53,6 +55,15 @@ const DashboardPage = () => {
       <div>
         <AskQuestionCard />
       </div>
+
+      {/* <div className='h-4'></div>
+      <div>
+        {project?.id && <FileTreeViewer projectId={project.id} />}
+      </div> */}
+      <div>
+        <FileTreeViewer projectId={project?.id} />
+      </div>
+
 
       <div className='h-4'></div>
       

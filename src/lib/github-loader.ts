@@ -3,6 +3,7 @@ import "dotenv/config";
 import { Document } from '@langchain/core/documents';
 import { generateEmbedding, summarizeCode } from './gemini';
 import { db } from '@/server/db';
+import { buildFileTree, renderFileTree } from './build-tree';
 
 export const loadGitHubRepo = async (githubUrl: string, gitHubToken?: string) => {
     const loader = new GithubRepoLoader(githubUrl, {
@@ -35,6 +36,15 @@ export const loadGitHubRepo = async (githubUrl: string, gitHubToken?: string) =>
 
 export const indexGithubRepo = async (projectId : string, userId : string, githubUrl: string, gitHubToken?: string) => {
     const docs = await loadGitHubRepo(githubUrl, gitHubToken)
+    const fileTreeObj = buildFileTree(docs);
+    const fileTreeStr = renderFileTree(fileTreeObj);
+    console.log(fileTreeStr);
+    await db.project.update({
+      where: { id: projectId },
+      //@ts-ignore
+      data: { fileTree: fileTreeStr },
+    });
+    
     const allEmbeddings = await generateEmbeddings(docs, projectId, userId);
     await Promise.allSettled(allEmbeddings.map(async (embedding, index) => {
         console.log(`Processing embedding ${index + 1} of ${allEmbeddings.length}`)

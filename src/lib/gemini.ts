@@ -62,13 +62,14 @@ const groq_for_commits = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-
 // ✅ Summarize git diff using Groq
 export const aiSummarizeCommit = async (diff: string) => {
   if (typeof diff !== "string") {
     diff = JSON.stringify(diff, null, 2);
   }
   console.log("Diff preview:", diff.slice(0, 300));
+  const MAX_CHARS = 8000; // safe cutoff depending on commit size
+  diff = diff.length > MAX_CHARS ? diff.slice(0, MAX_CHARS) : diff;
 
   const response = await groq_for_commits.chat.completions.create({
     model: CHAT_MODEL,
