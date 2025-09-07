@@ -2,7 +2,7 @@
 
 import { Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
-import { Bot, CreditCard, LayoutDashboard } from "lucide-react"
+import { Bot, CreditCard, LayoutDashboard, MessageCircleDashed } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -21,11 +21,11 @@ const items = [
     url: "/qa",
     icon: Bot
   },
-  // {
-  //   title: "Billing",
-  //   url: "/billing",
-  //   icon: CreditCard
-  // },
+  {
+    title: "Casual Chat",
+    url: "/casualchat",
+    icon: MessageCircleDashed
+  },
 ]
 
 // const projects = [

@@ -84,7 +84,11 @@ const CreatePage = () => {
       <ProjectProgressDialog open={progressOpen} onClose={() => setProgressOpen(false)} />
 
       {/* Commit Summary Modal */}
-      <CommitProgressDialog open={commitOpen} />
+      <CommitProgressDialog
+        open={commitOpen}
+        onClose={() => setCommitOpen(false)}
+      />
+
     </div>
   )
 }

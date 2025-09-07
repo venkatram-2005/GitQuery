@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { indexGithubRepo } from "@/lib/github-loader";
 import { db } from "@/server/db";
+import { askCasualQuestion } from "@/app/(protected)/casualchat/actions";
 
 
 export const projectRouter = createTRPCRouter({
@@ -153,6 +154,18 @@ export const projectRouter = createTRPCRouter({
       });
       //@ts-ignore
       return project?.fileTree ?? null;
+    }),
+
+    askCasualQuestion: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        question: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const output = await askCasualQuestion(input.question, input.projectId);
+      return { output };
     }),
 
 

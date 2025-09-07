@@ -21,13 +21,13 @@ export const rewriteRouter = createTRPCRouter({
             - If the input is in English, return the rewritten text in improved English.  
             - If the input is in another language, explicitly add an instruction at the beginning:  
             "Answer in <detected language>:"  
-            Then rewrite the text in that language with improved clarity, grammar, and tone.  
-            - Do not translate to English unless the user explicitly requests it.  
+            Then rewrite the text in english with improved clarity, grammar, and tone.  
             - Make the rewritten text sound natural, concise, and easy to understand.  
             - Match the style and formality level of the original text.  
             - If the text is vague or incomplete, refine it into a coherent, meaningful version without altering the intended message.
             - Do not try to give any own answers and only modify the user prompt into a meaningful prompt
             - Prompt ideally contains a question in here for every scenario
+            - Also consider that the questions asked are generally for better understanding of github repository code.
             `;
 
       const response = await client.chat.completions.create({

@@ -14,7 +14,7 @@ export async function askQuestion(question: string, projectId: string){
 
     const queryVector = await generateEmbedding(question);
     const vectorQuery = `[${queryVector.join(',')}]`
-
+    // Using only cosine similarity
     // const result = await db.$queryRaw`
     //     SELECT "fileName", "sourceCode", "summary",
     //     1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) AS similarity
@@ -48,7 +48,7 @@ export async function askQuestion(question: string, projectId: string){
         FROM "SourceCodeEmbedding"
         WHERE "projectId" = ${projectId}
         ORDER BY hybrid_score DESC
-        LIMIT 20;
+        LIMIT 10;
     ` as {
         fileName: string;
         sourceCode: string;

@@ -39,6 +39,7 @@ model Project{
     name String
     githubUrl String
     fileTree  String?
+    combinedSummary String? 
 
     deletedAt DateTime?
 

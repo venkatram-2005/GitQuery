@@ -46,6 +46,10 @@ export const indexGithubRepo = async (projectId : string, userId : string, githu
     });
     
     const allEmbeddings = await generateEmbeddings(docs, projectId, userId);
+
+      // Variable to collect all summaries
+      const combinedSummaries: string[] = [];
+
     await Promise.allSettled(allEmbeddings.map(async (embedding, index) => {
         console.log(`Processing embedding ${index + 1} of ${allEmbeddings.length}`)
         if(!embedding) return;
@@ -59,12 +63,30 @@ export const indexGithubRepo = async (projectId : string, userId : string, githu
             }
         })
 
+        // Collect summary
+        combinedSummaries.push(
+          `📄 ${embedding.fileName}\n${embedding.summary}`
+        );
+
         await db.$executeRaw`
             UPDATE "SourceCodeEmbedding"
             SET "summaryEmbedding" = ${embedding.embedding}::vector
             WHERE "id" = ${sourceCodeEmbedding.id}
         `
     }))
+     // Join everything into one combined summary
+    const finalSummary = combinedSummaries.join("\n\n");
+
+    // Store at project level
+    await db.project.update({
+      where: { id: projectId },
+      data: { 
+        //@ts-ignore
+        combinedSummary: finalSummary 
+      },
+    });
+
+    return finalSummary;
 }
 
 const generateEmbeddings = async (docs: Document[], projectId: string, userId : string) => {

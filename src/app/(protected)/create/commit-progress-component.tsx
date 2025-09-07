@@ -4,11 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 type Props = {
   open: boolean
+  onClose?: () => void
 }
 
-export default function CommitProgressDialog({ open }: Props) {
+export default function CommitProgressDialog({ open, onClose }: Props) {
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
       <DialogContent className='sm:max-w-md z-50'>
         <DialogHeader>
           <DialogTitle>Summarizing Commits</DialogTitle>
