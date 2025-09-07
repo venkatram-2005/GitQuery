@@ -31,7 +31,7 @@ const ArchiveButton = () => {
           size="sm"
           variant="destructive"
         >
-          Archive
+          Delete
         </Button>
       </AlertDialogTrigger>
 

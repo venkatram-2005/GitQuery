@@ -15,19 +15,50 @@ export async function askQuestion(question: string, projectId: string){
     const queryVector = await generateEmbedding(question);
     const vectorQuery = `[${queryVector.join(',')}]`
 
-    const result = await db.$queryRaw`
-        SELECT "fileName", "sourceCode", "summary",
-        1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) AS similarity
+    // const result = await db.$queryRaw`
+    //     SELECT "fileName", "sourceCode", "summary",
+    //     1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) AS similarity
+    //     FROM "SourceCodeEmbedding"
+    //     WHERE 1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) > .1
+    //     AND "projectId" = ${projectId}
+    //     ORDER BY similarity DESC
+    //     LIMIT 10
+    // ` as { fileName: string; sourceCode: string; summary: string }[];
+
+    // 2. Hybrid retrieval: cosine + BM25
+    const results = await db.$queryRaw`
+        SELECT
+        "fileName",
+        "sourceCode",
+        "summary",
+
+        1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) AS cosine_score,
+
+        ts_rank_cd(
+            to_tsvector('english', "sourceCode" || ' ' || "summary"),
+            plainto_tsquery(${question})
+        ) AS bm25_score,
+
+        (1 - ("summaryEmbedding" <=> ${vectorQuery}::vector)) * 0.6
+        + ts_rank_cd(
+            to_tsvector('english', "sourceCode" || ' ' || "summary"),
+            plainto_tsquery(${question})
+            ) * 0.4 AS hybrid_score
+
         FROM "SourceCodeEmbedding"
-        WHERE 1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) > .1
-        AND "projectId" = ${projectId}
-        ORDER BY similarity DESC
-        LIMIT 10
-    ` as { fileName: string; sourceCode: string; summary: string }[];
+        WHERE "projectId" = ${projectId}
+        ORDER BY hybrid_score DESC
+        LIMIT 20;
+    ` as {
+        fileName: string;
+        sourceCode: string;
+        summary: string;
+        hybrid_score: number;
+    }[];
 
     let context = '';
 
-    for (const doc of result) {
+    for (const doc of results) {
         context += `source: ${doc.fileName} \n code content : ${doc.sourceCode} \n Summary of the file: ${doc.summary}\n\n`
     }
 
@@ -67,6 +98,6 @@ export async function askQuestion(question: string, projectId: string){
     console.log(text);
     return{
         output: text, 
-        filesReferenced: result
+        filesReferenced: results
     }
 } 
