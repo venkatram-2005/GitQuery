@@ -60,6 +60,8 @@ const DashboardPage = () => {
       <div>
         {project?.id && <FileTreeViewer projectId={project.id} />}
       </div> */}
+
+      <div className="h-4"></div>
       <div>
         <FileTreeViewer projectId={project?.id} />
       </div>
