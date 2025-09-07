@@ -40,7 +40,7 @@ const CreatePage = () => {
           setCommitOpen(true)    // open commits modal
 
           // simulate commits summarization
-          await new Promise((res) => setTimeout(res, 1000)) // adjust delay as needed
+          await new Promise((res) => setTimeout(res, 25000)) // adjust delay as needed
 
           setCommitOpen(false) // close commit modal
           toast.success('Project created successfully')
