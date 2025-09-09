@@ -54,22 +54,46 @@ export const checkCredits = async (githubUrl: string, githubToken?: string) => {
   return fileCount;
 };
 
+/**
+ * Load GitHub repo dynamically using its default branch
+ */
 export const loadGitHubRepo = async (githubUrl: string, gitHubToken?: string) => {
+    // Extract owner and repo from URL
+    const match = githubUrl.match(/github\.com[:/](.+?)\/(.+?)(?:\.git|\/)?$/);
+    if (!match) throw new Error("Invalid GitHub URL");
+    const owner: string = match[1]!;
+    const repo: string = match[2]!;
+
+    // Initialize Octokit with token if provided
+    const octokit = new Octokit({ auth: gitHubToken || process.env.GITHUB_TOKEN });
+
+    // Fetch repository info to get default branch
+    let defaultBranch = 'main';
+    try {
+      const { data } = await octokit.rest.repos.get({ owner, repo });
+      defaultBranch = data.default_branch; // could be 'main' or 'master'
+    } catch (err) {
+      console.warn(`Failed to fetch default branch for ${owner}/${repo}. Falling back to 'main'`);
+    }
+
+    // Load repo via LangChain loader
     const loader = new GithubRepoLoader(githubUrl, {
-        accessToken: process.env.GITHUB_TOKEN || gitHubToken,
-        branch: 'main',
-        ignoreFiles: [
-            'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
-            'node_modules/**', 'dist/**', 'build/**',
-            '*.png', '*.jpg', '*.jpeg', '*.gif', '*.svg', '*.mp4', '*.mp3', '*.pbix'
-        ],
-        recursive: true,
-        unknown: 'warn',
-        maxConcurrency: 5,
+      accessToken: gitHubToken || process.env.GITHUB_TOKEN,
+      branch: defaultBranch,
+      ignoreFiles: [
+        'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+        'node_modules/**', 'dist/**', 'build/**',
+        '*.png', '*.jpg', '*.jpeg', '*.gif', '*.svg', '*.mp4', '*.mp3', '*.pbix'
+      ],
+      recursive: true,
+      unknown: 'warn',
+      maxConcurrency: 5,
     });
+
     const docs = await loader.load();
     return docs;
-}
+};
+
 
 // console.log(await loadGitHubRepo('https://github.com/venkatram-2005/Portfolio'));
 
