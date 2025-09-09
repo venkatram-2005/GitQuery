@@ -29,6 +29,7 @@ model User{
 
     userToProjects UserToProject[]
     questionsAsked Question[] 
+    transactions Transaction[]
 }
 
 model Project{
@@ -109,4 +110,21 @@ model Commit{
 
     // ai summary
     summary String
+}
+
+
+model Transaction {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  credits   Int
+  amount    Int       // amount in paise (Razorpay requirement)
+  status    String    // e.g. "created" | "success" | "failed"
+  orderId   String    @unique
+  paymentId String?   // filled after payment success
+  signature String?   // filled after payment verification
 }

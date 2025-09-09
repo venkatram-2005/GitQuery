@@ -10,6 +10,7 @@ import useRefetch from '@/hooks/use-refetch'
 import ProjectProgressDialog from './progress-component'
 import CommitProgressDialog from './commit-progress-component' // new dialog for commits
 import { useRouter } from 'next/navigation'
+import { Info } from 'lucide-react'
 
 type FormInput = {
   repoUrl: string
@@ -20,6 +21,8 @@ type FormInput = {
 const CreatePage = () => {
   const { register, handleSubmit, reset } = useForm<FormInput>()
   const createProject = api.project.createProject.useMutation()
+  const checkCredits = api.project.checkCredits.useMutation()
+
   const refetch = useRefetch()
   const router = useRouter()
 
@@ -27,33 +30,42 @@ const CreatePage = () => {
   const [commitOpen, setCommitOpen] = useState(false)
 
   function onSubmit(data: FormInput) {
-    setProgressOpen(true) // show file summarization modal
-    createProject.mutate(
-      {
+    if (!!checkCredits.data) {
+      setProgressOpen(true) // show file summarization modal
+      createProject.mutate(
+        {
+          githubUrl: data.repoUrl,
+          name: data.projectName,
+          gitHubToken: data.githubToken,
+        },
+        {
+          onSuccess: async () => {
+            setProgressOpen(false) // close file modal
+            toast.success('Files summarized successfully. Just a few seconds more !!!')
+            setCommitOpen(true)    // open commits modal
+
+            // simulate commits summarization
+            await new Promise((res) => setTimeout(res, 25000)) // adjust delay as needed
+
+            setCommitOpen(false) // close commit modal
+            toast.success('Project created successfully')
+            refetch()
+            reset()
+            router.push('/dashboard')
+          },
+          onError: (error) => {
+            setProgressOpen(false)
+            toast.error(`Error creating project: ${error.message}`)
+          },
+        }
+      )
+    }
+    else {
+      checkCredits.mutate({
         githubUrl: data.repoUrl,
-        name: data.projectName,
-        gitHubToken: data.githubToken,
-      },
-      {
-        onSuccess: async () => {
-          setProgressOpen(false) // close file modal
-          setCommitOpen(true)    // open commits modal
-
-          // simulate commits summarization
-          await new Promise((res) => setTimeout(res, 25000)) // adjust delay as needed
-
-          setCommitOpen(false) // close commit modal
-          toast.success('Project created successfully')
-          refetch()
-          reset()
-          router.push('/dashboard')
-        },
-        onError: (error) => {
-          setProgressOpen(false)
-          toast.error(`Error creating project: ${error.message}`)
-        },
-      }
-    )
+        githubToken: data.githubToken
+      })
+    }
   }
 
   return (
@@ -73,15 +85,31 @@ const CreatePage = () => {
           <Input {...register('repoUrl', { required: true })} placeholder='GitHub repository URL' type='url' required />
           <div className='h-2'></div>
           <Input {...register('githubToken')} placeholder='Github Token (optional)' />
+
+          {checkCredits.data && (
+            <>
+              <div className="mt-4 bg-orange-50 px-4 py-2 rounded-md border border-orange-200 text-orange-700">
+                <div className="flex items-center gap-2">
+                  <Info className='size-4' />
+                  <p className='text-sm'>You will be charged <strong>{checkCredits.data?.fileCount}</strong> credits for this repository</p>
+                </div>
+                <p className='text-sm text-blue-600 ml-6'>You have <strong>{checkCredits.data?.userCredits}</strong> credits remaining</p>
+              </div>
+            </>
+        )}
+
           <div className='h-4'></div>
-          <Button type='submit' disabled={createProject.isPending} className='hover:cursor-pointer'>
-            Create Project
+          <Button type='submit' disabled={createProject.isPending || checkCredits.isPending} className='hover:cursor-pointer'>
+              {!!checkCredits.data ? 'Create Project' : 'Check Credits'}
           </Button>
         </form>
       </div>
 
       {/* File Summary Modal */}
-      <ProjectProgressDialog open={progressOpen} onClose={() => setProgressOpen(false)} />
+      <ProjectProgressDialog 
+        open={progressOpen} 
+        onClose={() => setProgressOpen(false)} 
+      />
 
       {/* Commit Summary Modal */}
       <CommitProgressDialog

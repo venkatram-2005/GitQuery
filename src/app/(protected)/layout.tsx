@@ -5,6 +5,7 @@ import ClientUserButton from "./ClientUserButton";
 </div>
 
 import {AppSidebar} from './app-sidebar'
+import Script from 'next/script';
 
 type Props = {
     children: React.ReactNode
@@ -27,6 +28,11 @@ const SideBarLayout = ({children} : Props) => {
                 {children}
             </div>
         </main>
+        {/* Razorpay Script - loads once */}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
     </SidebarProvider>
   )
 }

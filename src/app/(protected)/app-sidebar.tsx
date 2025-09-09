@@ -26,6 +26,11 @@ const items = [
     url: "/casualchat",
     icon: MessageCircleDashed
   },
+  {
+    title: "Billing",
+    url: "/billing",
+    icon: CreditCard
+  },
 ]
 
 // const projects = [
@@ -96,25 +101,24 @@ export function AppSidebar() {
                 //@ts-ignore
                 projects?.map(project => {
                   return (
-                    <SidebarMenuItem key={project.name}>
+                    <SidebarMenuItem key={project.id}>
                       <SidebarMenuButton asChild>
-                        <div onClick={() => {
-                          setProjectId(project.id)
-                        }}>
+                        <div onClick={() => setProjectId(project.id)}>
                           <div className="hover:cursor-pointer">
-                              <div className={cn(
-                                'rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary',
-                                {
-                                  'bg-primary text-white': project.id === projectId
-                                }
-                              )}>
-                                {project.name[0]}
-                              </div>
+                            <div
+                              className={cn(
+                                "rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary",
+                                { "bg-primary text-white": project.id === projectId }
+                              )}
+                            >
+                              {project.name[0]}
+                            </div>
                           </div>
                           <span>{project.name}</span>
                         </div>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+
                   )
                 })
               }
